@@ -18,8 +18,80 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # The `secrets` context cannot be used in a step-level `if`, so signing
+      # availability is resolved once into an output.
+      - name: Resolve signing configuration
+        id: signing
+        env:
+          CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY_P8 }}
+        run: |
+          set -eu
+          if [ -n "$CERTIFICATE" ] && [ -n "$IDENTITY" ]; then
+            echo "sign=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sign=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No Developer ID secrets set — publishing an ad-hoc signed build that users must unquarantine."
+          fi
+          if [ -n "$NOTARY_KEY" ]; then
+            echo "notarize=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "notarize=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Import Developer ID certificate
+        if: steps.signing.outputs.sign == 'true'
+        env:
+          CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          set -eu
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password=$(uuidgen)
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 900 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          printf '%s' "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          # Lets codesign use the key without an interactive prompt.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          security find-identity -v -p codesigning "$keychain"
+
       - name: Build app bundle
+        env:
+          SIGN_IDENTITY: ${{ steps.signing.outputs.sign == 'true' && secrets.MACOS_SIGNING_IDENTITY || '-' }}
         run: sh scripts/bundle.sh
+
+      - name: Notarize and staple
+        if: steps.signing.outputs.notarize == 'true'
+        env:
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          set -eu
+          printf '%s' "$NOTARY_KEY_P8" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          ditto -c -k --sequesterRsrc --keepParent "dist/No Distractions.app" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --key "$RUNNER_TEMP/notary.p8" \
+            --key-id "$NOTARY_KEY_ID" \
+            --issuer "$NOTARY_ISSUER_ID" \
+            --wait --timeout 30m
+          # Staple the ticket into the bundle so it validates offline.
+          xcrun stapler staple "dist/No Distractions.app"
+          rm -f "$RUNNER_TEMP/notary.p8"
+
+      - name: Report Gatekeeper verdict
+        run: |
+          set -eu
+          codesign --display --verbose=2 "dist/No Distractions.app" 2>&1 | sed -n '1,12p'
+          # Non-fatal: an unsigned build is expected to be rejected here.
+          spctl --assess --type execute --verbose=2 "dist/No Distractions.app" || true
 
       - name: Package
         working-directory: dist
@@ -36,6 +108,17 @@ jobs:
             dist/NoDistractions.zip
             dist/NoDistractions.zip.sha256
 
+      - name: Assemble release notes
+        env:
+          NOTARIZED: ${{ steps.signing.outputs.notarize }}
+        run: |
+          set -eu
+          if [ "$NOTARIZED" = "true" ]; then
+            cat .github/install-signed.md .github/release-notes.md > "$RUNNER_TEMP/notes.md"
+          else
+            cat .github/install-unsigned.md .github/release-notes.md > "$RUNNER_TEMP/notes.md"
+          fi
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,4 +129,4 @@ jobs:
             dist/NoDistractions.zip \
             dist/NoDistractions.zip.sha256 \
             --title "No Distractions $TAG" \
-            --notes-file .github/release-notes.md
+            --notes-file "$RUNNER_TEMP/notes.md"

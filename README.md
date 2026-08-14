@@ -13,8 +13,8 @@ Download the latest `NoDistractions.zip` from
 [Releases](../../releases/latest), unzip, and move **No Distractions.app** to
 `/Applications`.
 
-The build is ad-hoc signed and not notarised — there is no Apple Developer
-account behind it — so macOS quarantines the download. Clear it once:
+Current releases are **ad-hoc signed and not notarised**, so macOS quarantines
+the download. Clear it once:
 
 ```sh
 xattr -dr com.apple.quarantine "/Applications/No Distractions.app"
@@ -22,6 +22,39 @@ xattr -dr com.apple.quarantine "/Applications/No Distractions.app"
 
 Then open the app. A moon appears in the menu bar; there is no Dock icon. To
 start it at login, add it under System Settings → General → Login Items.
+
+## Signing and notarisation
+
+Only a Developer ID signature plus Apple notarisation makes a download open
+with no warnings. Nothing else does: a self-signed certificate is not trusted by
+Gatekeeper, and ad-hoc signing (`codesign -s -`) only satisfies local execution.
+That needs the Apple Developer Program ($99/year).
+
+The release workflow already implements the full path and switches itself on
+when these repository secrets exist, so no code changes are needed later:
+
+| Secret | What it is |
+| --- | --- |
+| `MACOS_CERTIFICATE_P12` | base64 of the exported *Developer ID Application* certificate (`.p12`) |
+| `MACOS_CERTIFICATE_PASSWORD` | password used when exporting that `.p12` |
+| `MACOS_SIGNING_IDENTITY` | e.g. `Developer ID Application: Your Name (TEAMID)` |
+| `NOTARY_KEY_P8` | base64 of an App Store Connect API key (`AuthKey_XXXX.p8`) |
+| `NOTARY_KEY_ID` | that key's ID |
+| `NOTARY_ISSUER_ID` | issuer UUID from App Store Connect → Keys |
+
+```sh
+# Producing the two base64 blobs, once you have the files:
+base64 -i DeveloperID.p12 | pbcopy
+base64 -i AuthKey_ABCD1234.p8 | pbcopy
+```
+
+With them set, `scripts/bundle.sh` signs with the hardened runtime and a secure
+timestamp (both mandatory for notarisation), then CI submits the zip to
+`notarytool`, waits for the ticket, and staples it into the bundle so it
+validates offline. Without them, CI emits a warning, publishes the ad-hoc build,
+and swaps the release notes to the `xattr` instructions.
+
+To sign a local build: `SIGN_IDENTITY="Developer ID Application: … (TEAMID)" sh scripts/bundle.sh`.
 
 ## How it works
 

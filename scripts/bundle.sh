@@ -51,9 +51,19 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-# Ad-hoc signature: enough for Gatekeeper's "open anyway" path, not notarised.
-codesign --force --deep --sign - "$app"
-codesign --verify --strict "$app"
+# SIGN_IDENTITY="Developer ID Application: Name (TEAMID)" produces a signature
+# Gatekeeper accepts once the app is also notarised. Notarisation *requires* the
+# hardened runtime and a secure timestamp, so both go on here rather than in CI.
+# Without it, fall back to an ad-hoc signature: runnable, but quarantined on
+# other machines.
+identity="${SIGN_IDENTITY:--}"
+if [ "$identity" = "-" ]; then
+	codesign --force --sign - "$app"
+	echo "note: ad-hoc signed — downloads will be quarantined" >&2
+else
+	codesign --force --timestamp --options runtime --sign "$identity" "$app"
+fi
+codesign --verify --strict --verbose=1 "$app"
 lipo -info "$macos/nodistractions"
 
 echo "built $app"
