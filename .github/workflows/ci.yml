@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Build app bundle
+        run: sh scripts/bundle.sh
+
+      - name: Smoke test the CLI
+        run: |
+          set -eu
+          binary="dist/No Distractions.app/Contents/MacOS/nodistractions"
+          "$binary" help
+          # No agent is running on the runner, so control commands must fail
+          # loudly rather than silently doing nothing.
+          if "$binary" status; then
+            echo "expected 'status' to fail without a running agent" >&2
+            exit 1
+          fi
+          "$binary" set gradient nope 2>&1 | grep -q 'unknown gradient'
+
+      - name: Check the bundle is complete
+        run: |
+          set -eu
+          app="dist/No Distractions.app"
+          test -f "$app/Contents/Info.plist"
+          test -x "$app/Contents/MacOS/nodistractions"
+          test -f "$app/Contents/Resources/AppIcon.icns"
+          codesign --verify --deep --strict "$app"

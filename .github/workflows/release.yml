@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (e.g. v1.0.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app bundle
+        run: sh scripts/bundle.sh
+
+      - name: Package
+        working-directory: dist
+        run: |
+          set -eu
+          # ditto preserves bundle permissions and resource forks; plain zip does not.
+          ditto -c -k --sequesterRsrc --keepParent "No Distractions.app" NoDistractions.zip
+          shasum -a 256 NoDistractions.zip | tee NoDistractions.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NoDistractions
+          path: |
+            dist/NoDistractions.zip
+            dist/NoDistractions.zip.sha256
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -eu
+          gh release create "$TAG" \
+            dist/NoDistractions.zip \
+            dist/NoDistractions.zip.sha256 \
+            --title "No Distractions $TAG" \
+            --notes-file .github/release-notes.md
