@@ -45,6 +45,10 @@ jobs:
             echo "::warning::No Developer ID secrets set — publishing an ad-hoc signed build that users must unquarantine."
           fi
           echo "sign=$signed" >> "$GITHUB_OUTPUT"
+          # Lengths only — never the values. A tiny length here means the secret
+          # was stored wrong (e.g. `gh secret set --body -` stores a literal "-"
+          # instead of reading stdin).
+          echo "certificate base64: ${#CERTIFICATE} chars, notary key base64: ${#NOTARY_KEY} chars"
           # Apple only notarises Developer ID signatures, so an ad-hoc build must
           # never be submitted: it would fail the whole release instead of just
           # shipping unnotarised.
