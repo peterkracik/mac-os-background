@@ -70,8 +70,11 @@ jobs:
           security set-keychain-settings -lut 900 "$keychain"
           security unlock-keychain -p "$keychain_password" "$keychain"
           printf '%s' "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          # -f pkcs12 rather than relying on sniffing. Note the .p12 must be
+          # AES-encrypted: macOS 15's security(1) rejects openssl's -legacy
+          # (RC2) containers with "parameters were not valid".
           security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
-            -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+            -P "$CERTIFICATE_PASSWORD" -f pkcs12 -T /usr/bin/codesign
           # Lets codesign use the key without an interactive prompt.
           security set-key-partition-list -S apple-tool:,apple:,codesign: \
             -s -k "$keychain_password" "$keychain" > /dev/null
