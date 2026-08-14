@@ -3,13 +3,13 @@ icons visible and clickable.
 
 ## Install
 
-1. Download `NoDistractions.zip` below and unzip it.
-2. Move **No Distractions.app** into `/Applications`.
+1. Download `descreet.zip` below and unzip it.
+2. Move **descreet.app** into `/Applications`.
 3. The build is ad-hoc signed and not notarised, so macOS quarantines it. Clear
    that once:
 
    ```sh
-   xattr -dr com.apple.quarantine "/Applications/No Distractions.app"
+   xattr -dr com.apple.quarantine "/Applications/descreet.app"
    ```
 
    (Or: right-click the app, choose Open, then Open again. On macOS 15+ you may

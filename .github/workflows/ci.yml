@@ -21,7 +21,7 @@ jobs:
       - name: Smoke test the CLI
         run: |
           set -eu
-          binary="dist/No Distractions.app/Contents/MacOS/nodistractions"
+          binary="dist/descreet.app/Contents/MacOS/descreet"
           "$binary" help
           # No agent is running on the runner, so control commands must fail
           # loudly rather than silently doing nothing.
@@ -34,8 +34,8 @@ jobs:
       - name: Check the bundle is complete
         run: |
           set -eu
-          app="dist/No Distractions.app"
+          app="dist/descreet.app"
           test -f "$app/Contents/Info.plist"
-          test -x "$app/Contents/MacOS/nodistractions"
+          test -x "$app/Contents/MacOS/descreet"
           test -f "$app/Contents/Resources/AppIcon.icns"
           codesign --verify --deep --strict "$app"

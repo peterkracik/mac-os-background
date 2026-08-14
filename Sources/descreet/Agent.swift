@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 /// The background agent: one wallpaper-level window per screen, plus a menu bar item.
 final class Agent: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    static let displayName = "No Distractions"
+    static let displayName = "descreet"
     private static let fade: TimeInterval = 0.35
 
     private var windows: [DesktopWindow] = []
@@ -21,6 +21,7 @@ final class Agent: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         self.port = port
 
+        State.migrateLegacyState()
         settings = State.load()
         rebuildWindows()
         installStatusItem()

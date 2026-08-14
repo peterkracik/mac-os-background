@@ -1,6 +1,6 @@
 <div align="center">
-<img src="Resources/icon-1024.png" width="128" alt="No Distractions">
-<h1>No Distractions</h1>
+<img src="Resources/icon-1024.png" width="128" alt="descreet">
+<h1>descreet</h1>
 <p>Covers the macOS desktop wallpaper. Leaves the icons alone.</p>
 </div>
 
@@ -9,15 +9,15 @@ wallpaper, without hiding or disabling the desktop icons.
 
 ## Install
 
-Download the latest `NoDistractions.zip` from
-[Releases](../../releases/latest), unzip, and move **No Distractions.app** to
+Download the latest `descreet.zip` from
+[Releases](../../releases/latest), unzip, and move **descreet.app** to
 `/Applications`.
 
 The build is ad-hoc signed and not notarised — there is no Apple Developer
 account behind it — so macOS quarantines the download. Clear it once:
 
 ```sh
-xattr -dr com.apple.quarantine "/Applications/No Distractions.app"
+xattr -dr com.apple.quarantine "/Applications/descreet.app"
 ```
 
 Then open the app. A moon appears in the menu bar; there is no Dock icon. To
@@ -31,7 +31,7 @@ macOS composites the desktop in a fixed stack. Measured on macOS 26:
 | --- | --- | --- |
 | -2147483601 | Notification Center | desktop widgets |
 | -2147483603 | Finder, WindowManager | **desktop icons** |
-| **-2147483623** | No Distractions | **the overlay** |
+| **-2147483623** | descreet | **the overlay** |
 | -2147483624 | Dock | wallpaper container |
 | -2147483625 | Wallpaper | wallpaper renderer |
 | -2147483626 | Window Server | display backstop |
@@ -60,7 +60,7 @@ The same binary inside the bundle is a CLI that talks to the running app over a
 Mach port:
 
 ```sh
-alias nd='/Applications/No Distractions.app/Contents/MacOS/nodistractions'
+alias nd='/Applications/descreet.app/Contents/MacOS/descreet'
 
 nd set gradient aqua              # built-in preset
 nd set gradient '#0b1020' '#4a2b6b' --angle 270
@@ -76,7 +76,7 @@ nd quit
 validates input before it reaches the app, and fails loudly if the app is not
 running.
 
-State lives in `~/Library/Application Support/No Distractions/state.json`.
+State lives in `~/Library/Application Support/descreet/state.json`.
 
 ## Build from source
 
@@ -84,7 +84,7 @@ Requires macOS 14+ and a Swift 6 toolchain (Xcode 16 or its Command Line
 Tools).
 
 ```sh
-sh scripts/bundle.sh          # → dist/No Distractions.app (universal binary)
+sh scripts/bundle.sh          # → dist/descreet.app (universal binary)
 swift scripts/make-icon.swift # regenerate Resources/AppIcon.icns
 swift build -c release        # CLI only
 ```

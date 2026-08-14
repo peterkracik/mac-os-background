@@ -1,10 +1,10 @@
 #!/bin/sh
-# Builds "dist/No Distractions.app" — a LSUIElement (menu-bar-only) wrapper
+# Builds "dist/descreet.app" — a LSUIElement (menu-bar-only) wrapper
 # around the same binary.
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)
-app="$root/dist/No Distractions.app"
+app="$root/dist/descreet.app"
 macos="$app/Contents/MacOS"
 resources="$app/Contents/Resources"
 
@@ -17,9 +17,9 @@ done
 
 rm -rf "$app"
 mkdir -p "$macos" "$resources"
-lipo -create -output "$macos/nodistractions" \
-	"$root/.build/arm64-apple-macosx/release/nodistractions" \
-	"$root/.build/x86_64-apple-macosx/release/nodistractions"
+lipo -create -output "$macos/descreet" \
+	"$root/.build/arm64-apple-macosx/release/descreet" \
+	"$root/.build/x86_64-apple-macosx/release/descreet"
 
 # The icon is generated from the same colours as the Aqua preset.
 [ -f "$root/Resources/AppIcon.icns" ] || (cd "$root" && swift scripts/make-icon.swift)
@@ -35,12 +35,12 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key><string>No Distractions</string>
-	<key>CFBundleDisplayName</key><string>No Distractions</string>
-	<key>CFBundleIdentifier</key><string>dev.nodistractions.app</string>
+	<key>CFBundleName</key><string>descreet</string>
+	<key>CFBundleDisplayName</key><string>descreet</string>
+	<key>CFBundleIdentifier</key><string>dev.descreet.app</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>CFBundleIconName</key><string>AppIcon</string>
-	<key>CFBundleExecutable</key><string>nodistractions</string>
+	<key>CFBundleExecutable</key><string>descreet</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
 	<key>CFBundleShortVersionString</key><string>1.0</string>
 	<key>CFBundleVersion</key><string>1</string>
@@ -54,8 +54,8 @@ PLIST
 # Ad-hoc signature: enough for Gatekeeper's "open anyway" path, not notarised.
 codesign --force --deep --sign - "$app"
 codesign --verify --strict "$app"
-lipo -info "$macos/nodistractions"
+lipo -info "$macos/descreet"
 
 echo "built $app"
 echo "  open \"$app\"                       # menu-bar agent, no Dock icon"
-echo "  .build/release/nodistractions status  # or symlink it onto your PATH"
+echo "  .build/release/descreet status  # or symlink it onto your PATH"
