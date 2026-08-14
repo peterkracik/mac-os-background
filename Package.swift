@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "descreet",
+    name: "NoDistractions",
     platforms: [.macOS("14.0")],
     targets: [
         .executableTarget(
-            name: "descreet",
-            path: "Sources/descreet",
+            name: "nodistractions",
+            path: "Sources/nodistractions",
             swiftSettings: [.swiftLanguageMode(.v5)]
         )
     ]

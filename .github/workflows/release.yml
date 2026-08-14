@@ -26,15 +26,15 @@ jobs:
         run: |
           set -eu
           # ditto preserves bundle permissions and resource forks; plain zip does not.
-          ditto -c -k --sequesterRsrc --keepParent "descreet.app" descreet.zip
-          shasum -a 256 descreet.zip | tee descreet.zip.sha256
+          ditto -c -k --sequesterRsrc --keepParent "No Distractions.app" NoDistractions.zip
+          shasum -a 256 NoDistractions.zip | tee NoDistractions.zip.sha256
 
       - uses: actions/upload-artifact@v5
         with:
-          name: descreet
+          name: NoDistractions
           path: |
-            dist/descreet.zip
-            dist/descreet.zip.sha256
+            dist/NoDistractions.zip
+            dist/NoDistractions.zip.sha256
 
       - name: Publish release
         env:
@@ -43,7 +43,7 @@ jobs:
         run: |
           set -eu
           gh release create "$TAG" \
-            dist/descreet.zip \
-            dist/descreet.zip.sha256 \
-            --title "descreet $TAG" \
+            dist/NoDistractions.zip \
+            dist/NoDistractions.zip.sha256 \
+            --title "No Distractions $TAG" \
             --notes-file .github/release-notes.md

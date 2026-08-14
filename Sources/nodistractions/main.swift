@@ -1,18 +1,18 @@
 import AppKit
 
 let usage = """
-descreet — covers the desktop wallpaper, keeps the icons
+No Distractions — covers the desktop wallpaper, keeps the icons
 
-  descreet run                            run the agent in the foreground
-  descreet set gradient <name>            built-in macOS-style gradient
-  descreet set gradient <hex> <hex>        …or a custom two-colour ramp
-  descreet set color <hex>                 …or a solid colour
-  descreet set image <path> [--fit MODE]   …or an image
-  descreet add                            open the image picker
-  descreet enable | disable | toggle      overlay vs. the real wallpaper
-  descreet status                         what is showing, and at which level
-  descreet quit                           stop the agent
-  descreet wallpaper <path>               set the real macOS wallpaper instead
+  nodistractions run                            run the agent in the foreground
+  nodistractions set gradient <name>            built-in macOS-style gradient
+  nodistractions set gradient <hex> <hex>        …or a custom two-colour ramp
+  nodistractions set color <hex>                 …or a solid colour
+  nodistractions set image <path> [--fit MODE]   …or an image
+  nodistractions add                            open the image picker
+  nodistractions enable | disable | toggle      overlay vs. the real wallpaper
+  nodistractions status                         what is showing, and at which level
+  nodistractions quit                           stop the agent
+  nodistractions wallpaper <path>               set the real macOS wallpaper instead
 
   gradients: \(GradientPreset.all.map(\.id).joined(separator: ", "))
   --fit      cover (default) | contain | stretch | center
@@ -92,7 +92,7 @@ func startAgent() -> Never {
     exit(0)
 }
 
-let launchedAsApp = Bundle.main.bundleIdentifier == "dev.descreet.app"
+let launchedAsApp = Bundle.main.bundleIdentifier == "dev.nodistractions.app"
 
 func run(_ arguments: [String]) throws {
     guard let verb = arguments.first else {
@@ -138,7 +138,7 @@ func run(_ arguments: [String]) throws {
         print(usage)
 
     default:
-        throw AppError("unknown command '\(verb)' — try `descreet help`")
+        throw AppError("unknown command '\(verb)' — try `nodistractions help`")
     }
 }
 

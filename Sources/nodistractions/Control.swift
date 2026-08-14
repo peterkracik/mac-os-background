@@ -57,7 +57,7 @@ struct Settings: Codable {
 /// reliable "another agent owns this name" and `Client.send` failing is a
 /// reliable "no agent is running" — no stale lock files to reap.
 enum Control {
-    static let portName = "dev.descreet.agent" as CFString
+    static let portName = "dev.nodistractions.agent" as CFString
 
     enum Server {
         /// Installs `handler` on the main run loop. Returns nil if the name is taken.
@@ -87,8 +87,8 @@ enum Control {
     enum Client {
         static func send(_ command: Command) throws -> Reply {
             guard let port = CFMessagePortCreateRemote(nil, Control.portName) else {
-                throw AppError("descreet is not running — start it with "
-                    + "`descreet run` or open the app")
+                throw AppError("No Distractions is not running — start it with "
+                    + "`nodistractions run` or open the app")
             }
             defer { CFMessagePortInvalidate(port) }
             let payload = try JSONEncoder().encode(command) as CFData
@@ -109,28 +109,10 @@ enum Control {
 enum State {
     static let directory: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return base.appendingPathComponent("descreet", isDirectory: true)
+        return base.appendingPathComponent("No Distractions", isDirectory: true)
     }()
 
     static let url = State.directory.appendingPathComponent("state.json")
-
-    /// The app shipped once as "No Distractions"; carry that state over so the
-    /// rename does not silently reset someone's background.
-    static func migrateLegacyState() {
-        let manager = FileManager.default
-        let legacy = directory.deletingLastPathComponent()
-            .appendingPathComponent("No Distractions", isDirectory: true)
-        guard !manager.fileExists(atPath: url.path),
-              manager.fileExists(atPath: legacy.appendingPathComponent("state.json").path)
-        else { return }
-        do {
-            try manager.createDirectory(at: directory, withIntermediateDirectories: true)
-            try manager.moveItem(at: legacy.appendingPathComponent("state.json"), to: url)
-            try? manager.removeItem(at: legacy)
-        } catch {
-            warn("could not migrate state from \(legacy.path): \(error.localizedDescription)")
-        }
-    }
 
     static func load() -> Settings {
         guard let data = try? Data(contentsOf: url) else { return Settings() }
@@ -153,7 +135,7 @@ enum State {
 }
 
 func warn(_ message: String) {
-    FileHandle.standardError.write(Data("descreet: \(message)\n".utf8))
+    FileHandle.standardError.write(Data("nodistractions: \(message)\n".utf8))
 }
 
 func fail(_ message: String) -> Never {
