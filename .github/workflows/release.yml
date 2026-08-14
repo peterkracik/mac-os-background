@@ -1,3 +1,13 @@
+# Signs, notarises and publishes the app. Requires these repository secrets;
+# without the first three it falls back to an ad-hoc build that users must
+# unquarantine themselves.
+#
+#   MACOS_CERTIFICATE_P12       base64 of the exported Developer ID Application .p12
+#   MACOS_CERTIFICATE_PASSWORD  that .p12's export password
+#   MACOS_SIGNING_IDENTITY      Developer ID Application: Name (TEAMID)
+#   NOTARY_KEY_P8               base64 of an App Store Connect API key (.p8)
+#   NOTARY_KEY_ID               that key's ID
+#   NOTARY_ISSUER_ID            issuer UUID from App Store Connect → Keys
 name: Release
 
 on:
@@ -28,16 +38,23 @@ jobs:
           NOTARY_KEY: ${{ secrets.NOTARY_KEY_P8 }}
         run: |
           set -eu
+          signed=false
           if [ -n "$CERTIFICATE" ] && [ -n "$IDENTITY" ]; then
-            echo "sign=true" >> "$GITHUB_OUTPUT"
+            signed=true
           else
-            echo "sign=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No Developer ID secrets set — publishing an ad-hoc signed build that users must unquarantine."
           fi
-          if [ -n "$NOTARY_KEY" ]; then
+          echo "sign=$signed" >> "$GITHUB_OUTPUT"
+          # Apple only notarises Developer ID signatures, so an ad-hoc build must
+          # never be submitted: it would fail the whole release instead of just
+          # shipping unnotarised.
+          if [ "$signed" = true ] && [ -n "$NOTARY_KEY" ]; then
             echo "notarize=true" >> "$GITHUB_OUTPUT"
           else
             echo "notarize=false" >> "$GITHUB_OUTPUT"
+            if [ "$signed" = true ]; then
+              echo "::warning::Developer ID signature without notary credentials — the build will still be quarantined."
+            fi
           fi
 
       - name: Import Developer ID certificate
