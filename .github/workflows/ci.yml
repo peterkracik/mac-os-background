@@ -39,3 +39,18 @@ jobs:
           test -x "$app/Contents/MacOS/nodistractions"
           test -f "$app/Contents/Resources/AppIcon.icns"
           codesign --verify --deep --strict "$app"
+
+      - name: Build and check the disk image
+        run: |
+          set -eu
+          sh scripts/dmg.sh
+          # Mount read-only and make sure the drag-and-drop layout survived
+          # the conversion: app, Applications symlink, backdrop, and the
+          # .DS_Store Finder wrote for it.
+          mount=$(hdiutil attach dist/NoDistractions.dmg -nobrowse -readonly \
+            | sed -n 's|.*\(/Volumes/.*\)|\1|p')
+          test -d "$mount/No Distractions.app"
+          test -L "$mount/Applications"
+          test -f "$mount/.background/background.tiff"
+          test -f "$mount/.DS_Store"
+          hdiutil detach "$mount"
