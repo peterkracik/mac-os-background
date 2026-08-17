@@ -8,6 +8,7 @@ icons visible and clickable.
 - **Gradients ▸** — five built-in gradients; Aqua is the default.
 - **Images ▸** — your added images, with **Add New Image…** at the bottom.
 - **Settings ▸ Image Fit** — cover, contain, stretch, center.
+- **Settings ▸ Start at Login** — open automatically when you log in.
 
 The overlay sits on `kCGDesktopWindowLevel`: above the wallpaper, twenty levels
 below Finder's icon window, and click-through, so icons stay usable.

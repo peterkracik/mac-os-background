@@ -22,7 +22,8 @@ No Distractions — covers the desktop wallpaper, keeps the icons
 The overlay sits on kCGDesktopWindowLevel: above the wallpaper, 20 levels below
 the Finder icon window, and click-through — so icons stay visible and usable.
 The menu bar item does the same: one Enable checkmark, Gradients ▸, Images ▸
-(with Add New Image… last), and Settings ▸ Image Fit.
+(with Add New Image… last), and a Settings ▸ submenu with Image Fit and
+Start at Login.
 """
 
 /// Hand-rolled flag extraction: pulls `--name value` pairs out and returns the rest.

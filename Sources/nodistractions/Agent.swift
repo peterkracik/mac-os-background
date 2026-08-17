@@ -131,6 +131,7 @@ final class Agent: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 icons \(CGWindowLevelForKey(.desktopIconWindow)))
                 screens: \(screens.joined(separator: ", "))
                 menu bar item: \(statusItemDiagnostic)
+                start at login: \(LoginItem.summary)
                 gradients: \(GradientPreset.all.map(\.id).joined(separator: ", "))
                 library: \(settings.library.isEmpty ? "empty" : settings.library.joined(separator: ", "))
                 real wallpaper: \(Wallpaper.urls().joined(separator: ", "))
@@ -234,6 +235,15 @@ final class Agent: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(.separator())
         let forget = add(to: menu, "Remove Current Image from List", #selector(forgetCurrentImage))
         forget.isEnabled = currentImagePath != nil
+
+        if LoginItem.available {
+            menu.addItem(.separator())
+            let login = add(to: menu, "Start at Login", #selector(toggleStartAtLogin))
+            login.state = LoginItem.enabled ? .on : LoginItem.pending ? .mixed : .off
+            if LoginItem.pending {
+                login.toolTip = "Waiting for your approval in System Settings → Login Items."
+            }
+        }
         return menu
     }
 
@@ -305,6 +315,18 @@ final class Agent: NSObject, NSApplicationDelegate, NSMenuDelegate {
             choose(.image(path: next, fit: settings.fit))
         } else {
             choose(.default)
+        }
+    }
+
+    @objc private func toggleStartAtLogin() {
+        do {
+            try LoginItem.set(enabled: !LoginItem.enabled)
+        } catch {
+            NSApp.activate() // an accessory app must ask for focus before a modal alert
+            let alert = NSAlert()
+            alert.messageText = "Could Not Change Start at Login"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
         }
     }
 
