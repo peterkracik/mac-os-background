@@ -73,14 +73,11 @@ func drawBackground(scale: CGFloat) {
     teal.setFill()
     head.fill()
 
-    let caption = "Drag No Distractions into Applications"
-    let attributes: [NSAttributedString.Key: Any] = [
-        .font: NSFont.systemFont(ofSize: 13 * scale, weight: .medium),
-        .foregroundColor: color("#02343a", alpha: 0.62),
-    ]
-    let size = caption.size(withAttributes: attributes)
-    caption.draw(at: CGPoint(x: (canvas.width - size.width) / 2, y: 30 * scale),
-                 with: attributes)
+    let caption = NSAttributedString(
+        string: "Drag No Distractions into Applications",
+        attributes: [.font: NSFont.systemFont(ofSize: 13 * scale, weight: .medium),
+                     .foregroundColor: color("#02343a", alpha: 0.62)])
+    caption.draw(at: CGPoint(x: (canvas.width - caption.size().width) / 2, y: 30 * scale))
 }
 
 func png(scale: Int) throws -> Data {
