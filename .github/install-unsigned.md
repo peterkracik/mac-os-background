@@ -13,5 +13,6 @@
    System Settings → Privacy & Security → Open Anyway.)
 4. Open it. A moon appears in the menu bar; there is no Dock icon.
 
-To start it at login, add it under System Settings → General → Login Items.
+To start it at login, turn on **Settings ▸ Start at Login** in the moon menu.
+(macOS may ask you to approve it under System Settings → Login Items.)
 

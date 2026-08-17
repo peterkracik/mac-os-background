@@ -15,7 +15,7 @@ are — still visible, still clickable.
 3. Open it. A moon appears in the menu bar — there's no Dock icon.
 
 Signed and notarised by Apple, so it just opens. To have it start with your Mac:
-System Settings → General → Login Items.
+click the moon and turn on **Settings ▸ Start at Login**.
 
 ## Use it
 
@@ -25,6 +25,7 @@ Click the moon:
 - **Gradients ▸** — Aqua, Midnight, Graphite, Aurora, Dusk.
 - **Images ▸** — your own pictures, with **Add New Image…** at the bottom.
 - **Settings ▸ Image Fit** — cover, contain, stretch, center.
+- **Settings ▸ Start at Login** — open automatically when you log in.
 
 ## Build it yourself
 
