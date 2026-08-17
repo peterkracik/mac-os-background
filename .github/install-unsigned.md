@@ -1,7 +1,8 @@
 ## Install
 
-1. Download `NoDistractions.zip` below and unzip it.
-2. Move **No Distractions.app** into `/Applications`.
+1. Download `NoDistractions.dmg` below and open it.
+2. Drag **No Distractions** onto the **Applications** folder, the way the
+   arrow shows, then eject the image.
 3. This build is ad-hoc signed and **not** notarised, so macOS quarantines it.
    Clear that once:
 

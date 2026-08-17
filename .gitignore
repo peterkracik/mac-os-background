@@ -1,4 +1,5 @@
 .build/
 dist/
 Resources/AppIcon.iconset/
+Resources/DMGBackground.tiff
 .DS_Store

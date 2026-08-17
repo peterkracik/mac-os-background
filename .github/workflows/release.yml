@@ -71,7 +71,10 @@ jobs:
           keychain="$RUNNER_TEMP/signing.keychain-db"
           keychain_password=$(uuidgen)
           security create-keychain -p "$keychain_password" "$keychain"
-          security set-keychain-settings -lut 900 "$keychain"
+          # Signing happens twice — the app now, the disk image after the
+          # app's notarisation wait — so keep the keychain unlocked long
+          # enough to cover both.
+          security set-keychain-settings -lut 3600 "$keychain"
           security unlock-keychain -p "$keychain_password" "$keychain"
           printf '%s' "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
           # -f pkcs12 rather than relying on sniffing. Note the .p12 must be
@@ -110,6 +113,29 @@ jobs:
           xcrun stapler staple "dist/No Distractions.app"
           rm -f "$RUNNER_TEMP/notary.p8"
 
+      # After stapling, so the image carries the app that validates offline.
+      - name: Build disk image
+        env:
+          SIGN_IDENTITY: ${{ steps.signing.outputs.sign == 'true' && secrets.MACOS_SIGNING_IDENTITY || '-' }}
+        run: sh scripts/dmg.sh
+
+      - name: Notarize and staple the disk image
+        if: steps.signing.outputs.notarize == 'true'
+        env:
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          set -eu
+          printf '%s' "$NOTARY_KEY_P8" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          xcrun notarytool submit dist/NoDistractions.dmg \
+            --key "$RUNNER_TEMP/notary.p8" \
+            --key-id "$NOTARY_KEY_ID" \
+            --issuer "$NOTARY_ISSUER_ID" \
+            --wait --timeout 30m
+          xcrun stapler staple dist/NoDistractions.dmg
+          rm -f "$RUNNER_TEMP/notary.p8"
+
       - name: Report Gatekeeper verdict
         run: |
           set -eu
@@ -124,11 +150,14 @@ jobs:
           # ditto preserves bundle permissions and resource forks; plain zip does not.
           ditto -c -k --sequesterRsrc --keepParent "No Distractions.app" NoDistractions.zip
           shasum -a 256 NoDistractions.zip | tee NoDistractions.zip.sha256
+          shasum -a 256 NoDistractions.dmg | tee NoDistractions.dmg.sha256
 
       - uses: actions/upload-artifact@v5
         with:
           name: NoDistractions
           path: |
+            dist/NoDistractions.dmg
+            dist/NoDistractions.dmg.sha256
             dist/NoDistractions.zip
             dist/NoDistractions.zip.sha256
 
@@ -150,6 +179,8 @@ jobs:
         run: |
           set -eu
           gh release create "$TAG" \
+            dist/NoDistractions.dmg \
+            dist/NoDistractions.dmg.sha256 \
             dist/NoDistractions.zip \
             dist/NoDistractions.zip.sha256 \
             --title "No Distractions $TAG" \

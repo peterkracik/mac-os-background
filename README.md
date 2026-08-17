@@ -10,9 +10,10 @@ are — still visible, still clickable.
 
 ## Install
 
-1. Download `NoDistractions.zip` from [Releases](../../releases/latest).
-2. Unzip it and drag **No Distractions.app** into `/Applications`.
-3. Open it. A moon appears in the menu bar — there's no Dock icon.
+1. Download `NoDistractions.dmg` from [Releases](../../releases/latest).
+2. Open it and drag **No Distractions** onto **Applications** — the window
+   shows the way. (Prefer an archive? `NoDistractions.zip` is there too.)
+3. Open the app. A moon appears in the menu bar — there's no Dock icon.
 
 Signed and notarised by Apple, so it just opens. To have it start with your Mac:
 click the moon and turn on **Settings ▸ Start at Login**.
@@ -31,6 +32,7 @@ Click the moon:
 
 ```sh
 sh scripts/bundle.sh   # → dist/No Distractions.app
+sh scripts/dmg.sh      # → dist/NoDistractions.dmg, the drag-and-drop installer
 ```
 
 Needs macOS 14+ and a Swift 6 toolchain. Tagging `v*` builds and publishes a
